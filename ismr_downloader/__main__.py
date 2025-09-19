@@ -18,17 +18,20 @@ DATA_ENDPOINTS = {
     "ismr1min": "products/download/1min-ismr",
 }
 
+
 def main():
     parser = argparse.ArgumentParser(description="ISMR Downloader")
     parser.add_argument(
-        "-f", "--force-auth",
+        "-f",
+        "--force-auth",
         action="store_true",
-        help="Force authentication and ignore cached token"
+        help="Force authentication and ignore cached token",
     )
     parser.add_argument(
-        "-o", "--overwrite",
+        "-o",
+        "--overwrite",
         action="store_true",
-        help="Re-download files even if they already exist on disk"
+        help="Re-download files even if they already exist on disk",
     )
     args = parser.parse_args()
 
@@ -41,8 +44,10 @@ def main():
     data_type = os.getenv("DATA_TYPE", "ismr").lower()
 
     if data_type not in DATA_ENDPOINTS:
-        raise ValueError(f"Invalid data type: {data_type}. "
-                         f"Options: {', '.join(DATA_ENDPOINTS.keys())}")
+        raise ValueError(
+            f"Invalid data type: {data_type}. "
+            f"Options: {', '.join(DATA_ENDPOINTS.keys())}"
+        )
 
     if not all([email, password, stations, start_date, end_date]):
         raise ValueError("Missing required environment variables in .env file")
@@ -61,8 +66,11 @@ def main():
     try:
         downloader.download(stations, start_date, end_date)
     except SystemExit:
-        logging.critical("Downloader stopped due to repeated 429 Too Many Requests. "
-                         "Please wait and retry later.")
+        logging.critical(
+            "Downloader stopped due to repeated 429 Too Many Requests. "
+            "Please wait and retry later."
+        )
+
 
 if __name__ == "__main__":
     main()

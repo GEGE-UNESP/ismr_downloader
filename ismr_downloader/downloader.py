@@ -2,7 +2,7 @@ import time
 import logging
 import csv
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
@@ -87,7 +87,11 @@ class Downloader:
         - Timeout/network errors → retry up to 3 times.
         - Supports: bundle (zip), temp_urls (multiple files).
         """
-        params = {"start": start.isoformat(), "end": end.isoformat(), "station": station}
+        params = {
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+            "station": station,
+        }
         dataset = self.download_url.split("/")[-1].upper()
 
         for attempt in range(1, 4):
