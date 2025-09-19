@@ -75,6 +75,15 @@ python -m ismr_downloader
 
 ---
 
+# From prebuilt binary (Windows)
+
+If you downloaded the `.exe` from the Releases page, just place it in the same folder as your `.env` file and run:
+```bash
+ismr_downloader.exe -f -e .env
+```
+- This avoids the need for Python or pip installation.
+⚠ Make sure your `.exe` file has the same structure as the example.
+
 # Logs
 
 - All run logs will be saved under the `logs/` folder with a timestamp:

@@ -8,8 +8,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from tqdm import tqdm
 
-from .auth import AuthManager
-from .utils import daterange_chunks
+from ismr_downloader.auth import AuthManager
+from ismr_downloader.utils import daterange_chunks
 
 
 class Downloader:
