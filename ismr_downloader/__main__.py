@@ -1,10 +1,11 @@
 import os
 import logging
 import argparse
-from .client import create_session
-from .auth import AuthManager
-from .downloader import Downloader
 from dotenv import load_dotenv
+
+from ismr_downloader.client import create_session
+from ismr_downloader.auth import AuthManager
+from ismr_downloader.downloader import Downloader
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -22,20 +23,15 @@ DATA_ENDPOINTS = {
 def main():
     parser = argparse.ArgumentParser(description="ISMR Downloader")
     parser.add_argument(
-        "-f",
-        "--force-auth",
-        action="store_true",
-        help="Force authentication and ignore cached token",
+        "-f", "--force-auth", action="store_true", help="Force authentication"
     )
     parser.add_argument(
-        "-o",
-        "--overwrite",
-        action="store_true",
-        help="Re-download files even if they already exist on disk",
+        "-e", "--env", default=".env", help="Path to .env file (default: .env)"
     )
     args = parser.parse_args()
 
-    load_dotenv()
+    load_dotenv(args.env)
+
     email = os.getenv("ISMR_EMAIL")
     password = os.getenv("ISMR_PASSWORD")
     stations = os.getenv("ISMR_STATIONS", "").split(",")
@@ -45,31 +41,22 @@ def main():
 
     if data_type not in DATA_ENDPOINTS:
         raise ValueError(
-            f"Invalid data type: {data_type}. "
-            f"Options: {', '.join(DATA_ENDPOINTS.keys())}"
+            f"Invalid data type: {data_type}. Options: {', '.join(DATA_ENDPOINTS.keys())}"
         )
-
-    if not all([email, password, stations, start_date, end_date]):
-        raise ValueError("Missing required environment variables in .env file")
 
     stations = [s.strip() for s in stations if s.strip()]
 
     session = create_session()
     auth = AuthManager(session, LOGIN_URL, email, password)
-
-    # Authenticate (with --force-auth option)
     auth.authenticate(force=args.force_auth)
 
     download_url = f"{API_BASE}/{DATA_ENDPOINTS[data_type]}"
-    downloader = Downloader(session, auth, download_url, overwrite=args.overwrite)
+    downloader = Downloader(session, auth, download_url)
 
     try:
         downloader.download(stations, start_date, end_date)
     except SystemExit:
-        logging.critical(
-            "Downloader stopped due to repeated 429 Too Many Requests. "
-            "Please wait and retry later."
-        )
+        logging.critical("Downloader stopped due to repeated 429 errors.")
 
 
 if __name__ == "__main__":
