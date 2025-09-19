@@ -270,13 +270,16 @@ class Downloader:
             res.raise_for_status()
             total_size = int(res.headers.get("content-length", 0))
             block_size = 8192
-            with open(filepath, "wb") as f, tqdm(
-                total=total_size if total_size else None,
-                unit="B",
-                unit_scale=True,
-                desc=f"{dataset}-{filename}",
-                ascii=True,
-            ) as bar:
+            with (
+                open(filepath, "wb") as f,
+                tqdm(
+                    total=total_size if total_size else None,
+                    unit="B",
+                    unit_scale=True,
+                    desc=f"{dataset}-{filename}",
+                    ascii=True,
+                ) as bar,
+            ):
                 for chunk in res.iter_content(chunk_size=block_size):
                     if chunk:
                         f.write(chunk)

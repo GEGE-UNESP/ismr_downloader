@@ -1,0 +1,18 @@
+[project]
+name = "ismr_downloader"
+version = "0.1.0"
+description = "Downloader for ISMR Query Tool (RINEX, ISMR, 1min-ISMR, SBF)"
+authors = [
+  {name = "GEGE-UNESP", email = "suportgege@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "requests",
+  "python-dotenv",
+  "tqdm"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
