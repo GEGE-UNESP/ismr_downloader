@@ -1,4 +1,6 @@
-import requests, certifi
+import requests
+import certifi
+
 
 def create_session() -> requests.Session:
     session = requests.Session()

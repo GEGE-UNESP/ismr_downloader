@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 import requests
 from pathlib import Path
 from threading import Lock
+
+
 class AuthManager:
     _lock = Lock()
 
@@ -13,7 +15,7 @@ class AuthManager:
         login_url: str,
         email: str,
         password: str,
-        token_file: str = ".token.json"
+        token_file: str = ".token.json",
     ):
         self.session = session
         self.login_url = login_url
@@ -36,7 +38,7 @@ class AuthManager:
             if self.is_token_valid():
                 logging.info(
                     "Using cached token from file (expires at %s)",
-                    self.expires_at.isoformat()
+                    self.expires_at.isoformat(),
                 )
                 return True
             else:
@@ -50,7 +52,7 @@ class AuthManager:
         if self.token and self.expires_at:
             data = {
                 "access_token": self.token,
-                "expires_at": self.expires_at.astimezone(timezone.utc).isoformat()
+                "expires_at": self.expires_at.astimezone(timezone.utc).isoformat(),
             }
             with open(self.token_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
@@ -84,9 +86,13 @@ class AuthManager:
 
             expires_at_str = data.get("expires_at")
             if expires_at_str:
-                self.expires_at = datetime.fromisoformat(expires_at_str).astimezone(timezone.utc)
+                self.expires_at = datetime.fromisoformat(expires_at_str).astimezone(
+                    timezone.utc
+                )
             else:
                 self.expires_at = datetime.now(timezone.utc) + timedelta(hours=3)
 
             self._save_token()
-            logging.info("New token acquired (expires at %s)", self.expires_at.isoformat())
+            logging.info(
+                "New token acquired (expires at %s)", self.expires_at.isoformat()
+            )
