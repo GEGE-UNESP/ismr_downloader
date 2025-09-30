@@ -1,6 +1,6 @@
 [project]
 name = "ismr_downloader"
-version = "0.1.2"
+version = "0.1.3"
 description = "Downloader for ISMR Query Tool (RINEX, ISMR, 1min-ISMR, SBF)"
 authors = [
   {name = "GEGE-UNESP", email = "suportgege@gmail.com"}
