@@ -81,7 +81,7 @@ If you downloaded the `.exe` from the Releases page, just place it in the same f
 ```bash
 ismr_downloader.exe -f -e .env
 ```
-- This avoids the need for Python or pip installation.
+- This avoids the need for Python or pip installation. You can also simply double-click `.exe` to run it (or run the command above from a terminal/CMD).
 ⚠ Make sure your `.exe` file has the same structure as the example.
 
 # Logs
