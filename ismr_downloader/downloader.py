@@ -9,7 +9,7 @@ import requests
 from tqdm import tqdm
 
 from ismr_downloader.auth import AuthManager
-from ismr_downloader.utils import daterange_chunks
+from ismr_downloader.utils import daterange_chunks, normalize_datetime
 
 
 class Downloader:
@@ -29,7 +29,7 @@ class Downloader:
         self.auth = auth
         self.download_url = download_url
         self.max_requests_per_minute = max_requests_per_minute
-        self.request_interval = 60.0 / max_requests_per_minute
+        self.rate_limiter = RateLimiter(max_requests_per_minute)
         self.max_error_tolerance = max_error_tolerance
         self.max_workers = max_workers
         self.error_count = 0
@@ -80,13 +80,6 @@ class Downloader:
     def _download_chunk(
         self, station: str, start: datetime, end: datetime, save_dir: Path
     ) -> Optional[List[Path]]:
-        """
-        Try downloading a chunk of data.
-        - 404 (no data) → log into CSV, no retry.
-        - 429 (too many requests) → stop after 2 occurrences.
-        - Timeout/network errors → retry up to 3 times.
-        - Supports: bundle (zip), temp_urls (multiple files).
-        """
         params = {
             "start": start.isoformat(),
             "end": end.isoformat(),
@@ -97,12 +90,33 @@ class Downloader:
         for attempt in range(1, 4):
             try:
                 self._ensure_token_valid()
+                self.rate_limiter.wait()
+
                 response = self.session.get(
                     self.download_url,
                     params=params,
                     headers={"Authorization": f"Bearer {self.auth.token}"},
                     timeout=120,
                 )
+
+                if response.status_code == 503:
+                    try:
+                        msg = response.json().get("message", "Service temporarily unavailable")
+                    except Exception:
+                        msg = "Service temporarily unavailable"
+
+                    logging.critical(
+                        "[%s] SERVER MAINTENANCE (503) → %s %s→%s → %s",
+                        dataset,
+                        station,
+                        start.date(),
+                        end.date(),
+                        msg,
+                    )
+
+                    raise SystemExit(
+                        f"503 Service Unavailable received. Server message: {msg}"
+                    )
 
                 if response.status_code == 404:
                     try:
@@ -151,14 +165,8 @@ class Downloader:
                 if "bundle" in data and data["bundle"]:
                     bundle = data["bundle"]
                     filepath = self._download_file(
-                        dataset,
-                        station,
-                        start,
-                        end,
-                        attempt,
-                        bundle["url"],
-                        bundle["filename"],
-                        save_dir,
+                        dataset, station, start, end, attempt,
+                        bundle["url"], bundle["filename"], save_dir
                     )
                     if filepath:
                         downloaded_paths.append(filepath)
@@ -167,14 +175,8 @@ class Downloader:
                     for entry in data["temp_urls"]:
                         filename = entry.get("filename", "file.dat")
                         filepath = self._download_file(
-                            dataset,
-                            station,
-                            start,
-                            end,
-                            attempt,
-                            entry["url"],
-                            filename,
-                            save_dir,
+                            dataset, station, start, end, attempt,
+                            entry["url"], filename, save_dir
                         )
                         if filepath:
                             downloaded_paths.append(filepath)
@@ -197,29 +199,19 @@ class Downloader:
             except requests.Timeout as e:
                 logging.error(
                     "[%s] Timeout %s %s→%s [Attempt %d]: %s",
-                    dataset,
-                    station,
-                    start.date(),
-                    end.date(),
-                    attempt,
-                    e,
+                    dataset, station, start.date(), end.date(), attempt, e
                 )
                 time.sleep(5)
 
             except requests.RequestException as e:
                 logging.error(
                     "[%s] Error %s %s→%s [Attempt %d]: %s",
-                    dataset,
-                    station,
-                    start.date(),
-                    end.date(),
-                    attempt,
-                    e,
+                    dataset, station, start.date(), end.date(), attempt, e
                 )
                 time.sleep(5)
 
             finally:
-                time.sleep(self.request_interval)
+                self.rate_limiter.wait()
 
         return None
 
@@ -252,6 +244,7 @@ class Downloader:
             attempt,
         )
 
+        self.rate_limiter.wait()
         with self.session.get(
             url,
             headers={"Authorization": f"Bearer {self.auth.token}"},
@@ -309,8 +302,8 @@ class Downloader:
         save_dir = Path(save_dir)
         save_dir.mkdir(parents=True, exist_ok=True)
 
-        start_dt = datetime.fromisoformat(start)
-        end_dt = datetime.fromisoformat(end)
+        start_dt = normalize_datetime(start, is_start=True)
+        end_dt = normalize_datetime(end, is_start=False)
 
         results: List[Path] = []
         futures = []
@@ -331,3 +324,20 @@ class Downloader:
 
         self._summarize_run(results)
         return results
+
+import threading
+from time import monotonic
+
+class RateLimiter:
+    def __init__(self, rate_per_minute=30):
+        self.min_interval = 60.0 / rate_per_minute
+        self.lock = threading.Lock()
+        self.last_call = 0.0
+
+    def wait(self):
+        with self.lock:
+            now = monotonic()
+            elapsed = now - self.last_call
+            if elapsed < self.min_interval:
+                time.sleep(self.min_interval - elapsed)
+            self.last_call = monotonic()
