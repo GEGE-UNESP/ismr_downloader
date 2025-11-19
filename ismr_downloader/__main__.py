@@ -19,6 +19,7 @@ DATA_ENDPOINTS = {
     "ismr1min": "products/download/1min-ismr",
 }
 
+
 def main():
     parser = argparse.ArgumentParser(description="ISMR Downloader")
 
