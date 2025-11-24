@@ -254,6 +254,83 @@ ismr_downloader.exe --env .env --insecure
 No Python installation required.
 
 ---
+#  Running with Docker
+
+A pre-built Docker image is available on Docker Hub:
+
+```bash
+docker pull yingyangtongxue/ismr-downloader:latest
+```
+
+This image contains a fully configured environment with Python, all dependencies, and the `ismr-downloader` CLI preinstalled.
+
+---
+
+### 1. Prepare a working directory on the host
+
+Create a folder where downloads and logs will be stored, for example:
+
+```text
+D:\ismr_runner\
+    downloads\
+    logs\
+```
+
+You do **not** need to place any `.env` file there unless you want to.
+
+---
+
+### 2. Run the container with environment variables (recommended)
+
+Pass your API credentials as environment variables. This avoids storing passwords inside the container:
+
+```powershell
+docker run --rm `
+  -v D:\ismr_runner:/app `
+  -e ISMR_EMAIL="your_email@example.com" `
+  -e ISMR_PASSWORD="your_password" `
+  yingyangtongxue/ismr-downloader:latest `
+  --stations MOR3 `
+  --start "2025-11-24T00:00:00" `
+  --end   "2025-11-24T00:30:00" `
+  --data-type ismr `
+  --insecure
+```
+
+On Linux/macOS, the same command would look like:
+
+```bash
+docker run --rm -v /path/to/ismr_runner:/app -e ISMR_EMAIL="your_email@example.com" -e ISMR_PASSWORD="your_password" yingyangtongxue/ismr-downloader:latest --stations MOR3 --start "2025-11-24T00:00:00" --end "2025-11-24T00:30:00" --data-type ismr --insecure
+```
+
+**Where the files go:**
+
+| Host path                 | Container path | Purpose                |
+|---------------------------|----------------|------------------------|
+| `…/ismr_runner/downloads` | `/app/downloads` | Downloaded data files |
+| `…/ismr_runner/logs`      | `/app/logs`      | Logs and no-data CSVs |
+
+---
+
+### 3. Optional: using a `.env` file outside the repository
+
+If you prefer to keep credentials in a `.env` file, you can mount it directly:
+
+```powershell
+docker run --rm `
+  -v D:\ismr_secrets\.env:/app/.env `
+  -v D:\ismr_runner:/app `
+  yingyangtongxue/ismr-downloader:latest `
+  --env .env `
+  --insecure
+```
+
+In this setup:
+
+- `D:\ismr_secrets\.env` stays only on your machine (never committed to Git).
+- The container reads `/app/.env` just like the local CLI version.
+
+---
 
 # License
 

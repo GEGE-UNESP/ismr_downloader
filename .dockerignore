@@ -1,0 +1,15 @@
+.venv
+__pycache__/
+*.pyc
+dist/
+build/
+downloads/
+logs/
+*.log
+
+.git
+.gitignore
+.github/
+
+.env
+.env.*
