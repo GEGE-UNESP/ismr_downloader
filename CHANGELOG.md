@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/GEGE-UNESP/ismr_downloader/compare/v0.1.3...v0.1.4) (2025-11-24)
+
+
+### Bug Fixes
+
+* update packaging and release workflow ([9458228](https://github.com/GEGE-UNESP/ismr_downloader/commit/945822837a13226d8f80bcf338fe7fe331a3079d))
+
 ## [0.1.3](https://github.com/GEGE-UNESP/ismr_downloader/compare/v0.1.2...v0.1.3) (2025-11-19)
 
 
