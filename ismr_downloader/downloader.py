@@ -7,6 +7,8 @@ from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from tqdm import tqdm
+import threading
+from time import monotonic
 
 from ismr_downloader.auth import AuthManager
 from ismr_downloader.utils import daterange_chunks, normalize_datetime
@@ -101,7 +103,9 @@ class Downloader:
 
                 if response.status_code == 503:
                     try:
-                        msg = response.json().get("message", "Service temporarily unavailable")
+                        msg = response.json().get(
+                            "message", "Service temporarily unavailable"
+                        )
                     except Exception:
                         msg = "Service temporarily unavailable"
 
@@ -165,8 +169,14 @@ class Downloader:
                 if "bundle" in data and data["bundle"]:
                     bundle = data["bundle"]
                     filepath = self._download_file(
-                        dataset, station, start, end, attempt,
-                        bundle["url"], bundle["filename"], save_dir
+                        dataset,
+                        station,
+                        start,
+                        end,
+                        attempt,
+                        bundle["url"],
+                        bundle["filename"],
+                        save_dir,
                     )
                     if filepath:
                         downloaded_paths.append(filepath)
@@ -175,8 +185,14 @@ class Downloader:
                     for entry in data["temp_urls"]:
                         filename = entry.get("filename", "file.dat")
                         filepath = self._download_file(
-                            dataset, station, start, end, attempt,
-                            entry["url"], filename, save_dir
+                            dataset,
+                            station,
+                            start,
+                            end,
+                            attempt,
+                            entry["url"],
+                            filename,
+                            save_dir,
                         )
                         if filepath:
                             downloaded_paths.append(filepath)
@@ -199,14 +215,24 @@ class Downloader:
             except requests.Timeout as e:
                 logging.error(
                     "[%s] Timeout %s %s→%s [Attempt %d]: %s",
-                    dataset, station, start.date(), end.date(), attempt, e
+                    dataset,
+                    station,
+                    start.date(),
+                    end.date(),
+                    attempt,
+                    e,
                 )
                 time.sleep(5)
 
             except requests.RequestException as e:
                 logging.error(
                     "[%s] Error %s %s→%s [Attempt %d]: %s",
-                    dataset, station, start.date(), end.date(), attempt, e
+                    dataset,
+                    station,
+                    start.date(),
+                    end.date(),
+                    attempt,
+                    e,
                 )
                 time.sleep(5)
 
@@ -325,8 +351,6 @@ class Downloader:
         self._summarize_run(results)
         return results
 
-import threading
-from time import monotonic
 
 class RateLimiter:
     def __init__(self, rate_per_minute=30):

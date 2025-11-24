@@ -45,7 +45,9 @@ def main():
     )
 
     # Downloader configuration
-    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing files")
+    parser.add_argument(
+        "--overwrite", action="store_true", help="Overwrite existing files"
+    )
     parser.add_argument("--max-workers", type=int, help="Number of parallel downloads")
     parser.add_argument("--max-days", type=int, help="Max days per chunk")
     parser.add_argument("--max-req", type=int, help="Max requests per minute")
@@ -53,7 +55,7 @@ def main():
     parser.add_argument(
         "--output-dir",
         help="Directory where downloaded files will be stored "
-             "(default: 'downloads' or $ISMR_OUTPUT_DIR)",
+        "(default: 'downloads' or $ISMR_OUTPUT_DIR)",
     )
 
     # SSL
