@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.0](https://github.com/GEGE-UNESP/ismr_downloader/compare/v0.1.4...v0.2.0) (2025-11-24)
+
+
+### Features
+
+* add docker support ([4fa68f8](https://github.com/GEGE-UNESP/ismr_downloader/commit/4fa68f8d5712bf75b8c5a82c88d1f1df71242d35))
+
+
+### Bug Fixes
+
+* **linter:** update imports ([b338a10](https://github.com/GEGE-UNESP/ismr_downloader/commit/b338a102825b5b5825b946907cffede194051c0b))
+
+
+### Documentation
+
+* update readme and add license ([ee7c76e](https://github.com/GEGE-UNESP/ismr_downloader/commit/ee7c76e40a3bea6e2b6c3c8ef2e966a325390d39))
+
 ## [0.1.4](https://github.com/GEGE-UNESP/ismr_downloader/compare/v0.1.3...v0.1.4) (2025-11-24)
 
 
