@@ -3,16 +3,38 @@ name = "ismr_downloader"
 version = "0.1.0"
 description = "Downloader for ISMR Query Tool (RINEX, ISMR, 1min-ISMR, SBF)"
 authors = [
-  {name = "GEGE-UNESP", email = "suportgege@gmail.com"}
+  { name = "GEGE-UNESP", email = "suportgege@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+keywords = ["ismr", "gnss", "ionospheric scintillation", "remote sensing", "geodesy"]
+
 dependencies = [
   "requests",
   "python-dotenv",
-  "tqdm"
+  "tqdm",
+  "urllib3"
 ]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: GIS",
+]
+
+[project.urls]
+Homepage = "https://github.com/GEGE-UNESP/ismr_downloader"
+Issues = "https://github.com/GEGE-UNESP/ismr_downloader/issues"
+
+[project.scripts]
+ismr-downloader = "ismr_downloader.__main__:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ismr_downloader"]
