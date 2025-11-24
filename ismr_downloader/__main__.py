@@ -29,6 +29,10 @@ def main():
     parser.add_argument(
         "-f", "--force-auth", action="store_true", help="Force authentication"
     )
+    parser.add_argument(
+        "--token-file",
+        help="Path to token cache file (default: .token.json or $ISMR_TOKEN_FILE)",
+    )
 
     # Input dataset parameters
     parser.add_argument("--stations", help="Comma-separated list of stations")
@@ -46,6 +50,18 @@ def main():
     parser.add_argument("--max-days", type=int, help="Max days per chunk")
     parser.add_argument("--max-req", type=int, help="Max requests per minute")
     parser.add_argument("--logs-dir", default=None, help="Directory for logs")
+    parser.add_argument(
+        "--output-dir",
+        help="Directory where downloaded files will be stored "
+             "(default: 'downloads' or $ISMR_OUTPUT_DIR)",
+    )
+
+    # SSL
+    parser.add_argument(
+        "--insecure",
+        action="store_true",
+        help="Disable TLS certificate verification (not recommended in production)",
+    )
 
     # Environment file
     parser.add_argument(
@@ -56,18 +72,21 @@ def main():
 
     load_dotenv(args.env)
 
+    # Authentication values
     email = args.email or os.getenv("ISMR_EMAIL")
     password = args.password or os.getenv("ISMR_PASSWORD")
+
+    # Stations (CLI > env)
     stations_env = os.getenv("ISMR_STATIONS", "")
     stations_cli = args.stations
-
-    stations = (
-        stations_cli.split(",") if stations_cli else stations_env.split(",")
-    )
+    stations = stations_cli.split(",") if stations_cli else stations_env.split(",")
     stations = [s.strip() for s in stations if s.strip()]
 
+    # Dates (CLI > env)
     start_date = args.start or os.getenv("ISMR_START")
     end_date = args.end or os.getenv("ISMR_END")
+
+    # Data type (CLI > env > default)
     data_type = (args.data_type or os.getenv("DATA_TYPE", "ismr")).lower()
 
     if data_type not in DATA_ENDPOINTS:
@@ -75,9 +94,24 @@ def main():
             f"Invalid data type: {data_type}. Options: {', '.join(DATA_ENDPOINTS.keys())}"
         )
 
+    # Output dir (CLI > env > default)
+    output_dir = args.output_dir or os.getenv("ISMR_OUTPUT_DIR", "downloads")
+
+    # Token file (CLI > env > default)
+    token_file = args.token_file or os.getenv("ISMR_TOKEN_FILE", ".token.json")
+
+    # Basic validation
+    if not email or not password:
+        raise SystemExit("Email and password must be provided (via CLI or .env).")
+    if not stations:
+        raise SystemExit("At least one station must be provided (via CLI or .env).")
+    if not start_date or not end_date:
+        raise SystemExit("Start and end dates must be provided (via CLI or .env).")
+
     # Create session/auth
-    session = create_session()
-    auth = AuthManager(session, LOGIN_URL, email, password)
+    verify_ssl = not args.insecure
+    session = create_session(verify_ssl=verify_ssl)
+    auth = AuthManager(session, LOGIN_URL, email, password, token_file=token_file)
     auth.authenticate(force=args.force_auth)
 
     # Downloader configuration (CLI overrides defaults)
@@ -98,7 +132,7 @@ def main():
     downloader = Downloader(session, auth, download_url, **downloader_kwargs)
 
     try:
-        downloader.download(stations, start_date, end_date)
+        downloader.download(stations, start_date, end_date, save_dir=output_dir)
     except SystemExit as e:
         logging.critical(str(e))
 
