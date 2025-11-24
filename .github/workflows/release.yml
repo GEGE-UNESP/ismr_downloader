@@ -47,7 +47,6 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller build twine
 
-      # Linux
       - name: Build Linux binary
         if: runner.os == 'Linux'
         run: |
@@ -56,7 +55,6 @@ jobs:
           cp dist/ismr_downloader artifacts/
           tar -czf artifacts/ismr_downloader_${{ needs.release-please.outputs.tag_name }}_linux.tar.gz -C artifacts ismr_downloader
 
-      # macOS
       - name: Build macOS binary
         if: runner.os == 'macOS'
         run: |
@@ -65,7 +63,6 @@ jobs:
           cp dist/ismr_downloader artifacts/
           zip -j artifacts/ismr_downloader_${{ needs.release-please.outputs.tag_name }}_macos.zip artifacts/ismr_downloader
 
-      # Windows
       - name: Build Windows binary
         if: runner.os == 'Windows'
         run: |
