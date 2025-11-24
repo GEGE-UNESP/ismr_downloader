@@ -15,6 +15,7 @@ def daterange_chunks(
         yield current, chunk_end
         current = chunk_end + timedelta(days=1)
 
+
 def normalize_datetime(dt_str: str, is_start: bool) -> datetime:
     """
     Normalizes user-provided date/time strings.
