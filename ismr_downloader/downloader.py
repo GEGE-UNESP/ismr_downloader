@@ -7,6 +7,8 @@ from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from tqdm import tqdm
+import threading
+from time import monotonic
 
 from ismr_downloader.auth import AuthManager
 from ismr_downloader.utils import daterange_chunks, normalize_datetime
@@ -324,9 +326,6 @@ class Downloader:
 
         self._summarize_run(results)
         return results
-
-import threading
-from time import monotonic
 
 class RateLimiter:
     def __init__(self, rate_per_minute=30):
